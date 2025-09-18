@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق تسجيل نقاط اللاعبين</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 12px;
+            margin-top: 12px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #6a11cb;
+        }
+        
+        h1 {
+            color: #2575fc;
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+        
+        .description {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+        }
+        
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .player-card {
+            background: linear-gradient(to bottom, #f5f7fa, #e4e8f0);
+            border-radius: 6px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            max-height: 320px;
+            overflow: hidden;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .player-card.winner {
+            border: 2px solid #4CAF50;
+            background: linear-gradient(to bottom, #f1f8e9, #dcedc8);
+            box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
+        }
+        
+        .player-card.highest {
+            border: 2px solid #FFC107;
+            background: linear-gradient(to bottom, #fff8e1, #ffecb3);
+            box-shadow: 0 3px 6px rgba(255, 193, 7, 0.3);
+        }
+        
+        .player-card.lowest {
+            border: 2px solid #4CAF50;
+            background: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
+            box-shadow: 0 3px 6px rgba(76, 175, 80, 0.3);
+        }
+        
+        .player-name-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .player-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin: 0 4px;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+        
+        .player-name:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .player-name-input {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            border: 1px solid #2575fc;
+            border-radius: 3px;
+            padding: 2px 4px;
+            width: 90px;
+            background-color: white;
+        }
+        
+        .edit-name-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+        
+        .edit-name-btn:hover {
+            color: #2575fc;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .score-display {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin: 6px 0;
+            text-align: center;
+        }
+        
+        .score-lowest {
+            color: #4CAF50;
+        }
+        
+        .score-highest {
+            color: #FFC107;
+        }
+        
+        .score-normal {
+            color: #2575fc;
+        }
+        
+        .score-loser {
+            color: #f44336;
+        }
+        
+        .score-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 8px 0;
+            width: 100%;
+        }
+        
+        button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .add-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .add-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.1);
+        }
+        
+        .subtract-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .subtract-btn:hover {
+            background-color: #d32f2f;
+            transform: scale(1.1);
+        }
+        
+        .delete-btn {
+            background-color: #9e9e9e;
+            color: white;
+            width: 24px;
+            height: 24px;
+            font-size: 0.7rem;
+            position: absolute;
+            top: 6px;
+            left: 6px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #757575;
+            transform: scale(1.1);
+        }
+        
+        .value-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 6px 0;
+            width: 100%;
+        }
+        
+        .value-control label {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .value-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #2575fc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+        
+        .value-input::placeholder {
+            color: #aaa;
+            font-style: italic;
+            font-size: 0.7rem;
+        }
+        
+        .score-history {
+            width: 100%;
+            margin-top: 8px;
+            border-top: 1px solid #ddd;
+            padding-top: 6px;
+            max-height: 90px;
+            overflow-y: auto;
+        }
+        
+        .score-history h4 {
+            text-align: center;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 0.7rem;
+        }
+        
+        .history-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 5px;
+            margin-bottom: 2px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 2px;
+            font-size: 0.7rem;
+        }
+        
+        .history-add {
+            color: #4CAF50;
+        }
+        
+        .history-subtract {
+            color: #f44336;
+        }
+        
+        .history-time {
+            font-size: 0.6rem;
+            color: #888;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-width: 110px;
+        }
+        
+        .add-row {
+            background-color: #6a11cb;
+            color: white;
+        }
+        
+        .add-row:hover {
+            background-color: #580fb8;
+            transform: translateY(-2px);
+        }
+        
+        .calculate {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .calculate:hover {
+            background-color: #e68900;
+            transform: translateY(-2px);
+        }
+        
+        .clear-all {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .clear-all:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+        
+        .results {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #e8f4fc;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .results h2 {
+            color: #2575fc;
+            margin-bottom: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .winner {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-top: 6px;
+            padding: 6px;
+            background-color: #f1f8e9;
+            border-radius: 4px;
+        }
+        
+        .instructions {
+            background-color: #fff8e1;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 12px;
+            border-right: 3px solid #ffc107;
+            font-size: 0.8rem;
+        }
+        
+        .instructions h3 {
+            color: #ff9800;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .instructions ul {
+            padding-right: 12px;
+            color: #666;
+        }
+        
+        .instructions li {
+            margin-bottom: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .winner-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #4CAF50;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            font-size: 0.7rem;
+        }
+        
+        .highest-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #FFC107;
+            color: #333;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            font-size: 0.7rem;
+        }
+        
+        .empty-history {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 6px;
+            font-size: 0.7rem;
+        }
+        
+        .refresh-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #ff9800;
+            color: white;
+            text-align: center;
+            padding: 6px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            font-size: 0.8rem;
+        }
+        
+        .input-error {
+            color: #f44336;
+            font-size: 0.65rem;
+            margin-top: 3px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+            
+            .action-btn {
+                min-width: 100px;
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+            
+            .player-card {
+                max-height: none;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="refresh-warning" id="refreshWarning">
+        <i class="fas fa-exclamation-triangle"></i>
+        تنبيه: عند تحديث الصفحة سيتم فقدان جميع البيانات.
+    </div>
+    
+    <header>
+        <h1>تطبيق تسجيل نقاط اللاعبين</h1>
+        <p class="description">سجل نقاط اللاعبين مع عرض التاريخ الكامل للتغييرات</p>
+    </header>
+    
+    <div class="container">
+        <div id="players-container" class="players-grid">
+            <!-- Players will be added here dynamically -->
+        </div>
+        
+        <div class="actions">
+            <button class="action-btn add-row" onclick="addPlayer()">
+                <i class="fas fa-plus"></i> إضافة لاعب
+            </button>
+            <button class="action-btn calculate" onclick="calculateResults()">
+                <i class="fas fa-calculator"></i> النتائج
+            </button>
+            <button class="action-btn clear-all" onclick="clearAll()">
+                <i class="fas fa-trash"></i> مسح الكل
+            </button>
+        </div>
+        
+        <div id="results" class="results">
+            <h2>النتائج</h2>
+            <div id="results-content"></div>
+            <div id="winner" class="winner"></div>
+        </div>
+        
+        <div class="instructions">
+            <h3>كيفية الاستخدام:</h3>
+            <ul>
+                <li>انقر على اسم اللاعب لتعديله، ثم اضغط Enter للحفظ</li>
+                <li>أدخل القيمة في حقل "القيمة" (يبدأ فارغًا)</li>
+                <li>انقر على (+) للإضافة أو (-) للطرح</li>
+                <li>لن يتم تسجيل العمليات إذا كان الحقل فارغًا</li>
+                <li>انقر على (x) لحذف اللاعب</li>
+                <li>اللاعب ذو أقل نقاط يظهر بالأخضر</li>
+                <li>اللاعب صاحب أعلى نقاط يظهر بالأصفر</li>
+                <li>انقر على "إضافة لاعب" لإضافة لاعب جديد</li>
+                <li>انقر على "النتائج" لرؤية الترتيب والفائز</li>
+                <li>انقر على "مسح الكل" لإعادة التعيين</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Initialize players
+        let players = [
+            { name: "اللاعب 1", score: 0, value: "", history: [] },
+            { name: "اللاعب 2", score: 0, value: "", history: [] },
+            { name: "اللاعب 3", score: 0, value: "", history: [] }
+        ];
+        
+        // Track which player is being edited
+        let editingPlayerIndex = -1;
+        
+        // Get the value for a specific player
+        function getValue(index) {
+            const valueInput = document.getElementById(`value-${index}`);
+            const errorElement = document.getElementById(`error-${index}`);
+            let value = parseInt(valueInput.value);
+            
+            if (isNaN(value)) {
+                errorElement.style.display = 'block';
+                return NaN;
+            }
+            
+            if (value < 0) {
+                errorElement.textContent = 'القيمة يجب أن تكون رقمًا موجبًا';
+                errorElement.style.display = 'block';
+                return NaN;
+            }
+            
+            errorElement.style.display = 'none';
+            players[index].value = value;
+            return value;
+        }
+        
+        // Update value for a player
+        function updateValue(index) {
+            const valueInput = document.getElementById(`value-${index}`);
+            const errorElement = document.getElementById(`error-${index}`);
+            let value = parseInt(valueInput.value);
+            
+            if (isNaN(value)) {
+                players[index].value = "";
+                valueInput.value = "";
+                errorElement.style.display = 'none';
+                return;
+            }
+            
+            if (value < 0) {
+                errorElement.textContent = 'القيمة يجب أن تكون رقمًا موجبًا';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            errorElement.style.display = 'none';
+            players[index].value = value;
+        }
+        
+        // Reset value input to empty
+        function resetValueInput(index) {
+            const valueInput = document.getElementById(`value-${index}`);
+            const errorElement = document.getElementById(`error-${index}`);
+            valueInput.value = "";
+            players[index].value = "";
+            errorElement.style.display = 'none';
+        }
+        
+        // Format time for history
+        function formatTime() {
+            const now = new Date();
+            return `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+        }
+        
+        // Check if player is a loser (score >= 102)
+        function isLoser(score) {
+            return score >= 102;
+        }
+        
+        // Find players with highest and lowest scores
+        function findExtremePlayers() {
+            let minScore = Infinity;
+            let maxScore = -1;
+            let lowestPlayers = [];
+            let highestPlayers = [];
+            
+            players.forEach(player => {
+                if (!isLoser(player.score)) {
+                    if (player.score < minScore) {
+                        minScore = player.score;
+                        lowestPlayers = [player];
+                    } else if (player.score === minScore) {
+                        lowestPlayers.push(player);
+                    }
+                    
+                    if (player.score > maxScore) {
+                        maxScore = player.score;
+                        highestPlayers = [player];
+                    } else if (player.score === maxScore) {
+                        highestPlayers.push(player);
+                    }
+                }
+            });
+            
+            return { lowestPlayers, highestPlayers };
+        }
+        
+        // Start editing player name
+        function startEditingName(index) {
+            // If already editing another player, save it first
+            if (editingPlayerIndex !== -1 && editingPlayerIndex !== index) {
+                savePlayerName(editingPlayerIndex);
+            }
+            
+            editingPlayerIndex = index;
+            renderPlayers();
+            
+            // Focus on the input field
+            setTimeout(() => {
+                const input = document.getElementById(`name-input-${index}`);
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }, 10);
+        }
+        
+        // Save player name
+        function savePlayerName(index) {
+            const input = document.getElementById(`name-input-${index}`);
+            if (input && input.value.trim() !== "") {
+                players[index].name = input.value.trim();
+            }
+            editingPlayerIndex = -1;
+            renderPlayers();
+        }
+        
+        // Handle key press in name input
+        function handleNameKeyPress(index, event) {
+            if (event.key === "Enter") {
+                savePlayerName(index);
+            } else if (event.key === "Escape") {
+                editingPlayerIndex = -1;
+                renderPlayers();
+            }
+        }
+        
+        // Render players function
+        function renderPlayers() {
+            const container = document.getElementById('players-container');
+            container.innerHTML = '';
+            
+            const { lowestPlayers, highestPlayers } = findExtremePlayers();
+            
+            players.forEach((player, index) => {
+                const isPlayerLoser = isLoser(player.score);
+                const isLowest = lowestPlayers.some(p => p.name === player.name);
+                const isHighest = highestPlayers.some(p => p.name === player.name);
+                const isEditing = editingPlayerIndex === index;
+                
+                const playerCard = document.createElement('div');
+                playerCard.className = `player-card ${isPlayerLoser ? 'loser' : ''} ${isLowest ? 'lowest' : ''} ${isHighest ? 'highest' : ''}`;
+                playerCard.id = `player-card-${index}`;
+                
+                playerCard.innerHTML = `
+                    <button class="delete-btn" onclick="deletePlayer(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="player-name-container">
+                        ${isEditing ? 
+                            `<input type="text" id="name-input-${index}" class="player-name-input" value="${player.name}" onkeypress="handleNameKeyPress(${index}, event)" onblur="savePlayerName(${index})">` :
+                            `<div class="player-name" onclick="startEditingName(${index})">${player.name}</div>`
+                        }
+                        <button class="edit-name-btn" onclick="${isEditing ? `savePlayerName(${index})` : `startEditingName(${index})`}">
+                            <i class="fas ${isEditing ? 'fa-check' : 'fa-edit'}"></i>
+                        </button>
+                    </div>
+                    <div class="score-display ${isPlayerLoser ? 'score-loser' : isLowest ? 'score-lowest' : isHighest ? 'score-highest' : 'score-normal'}" id="score-${index}">${player.score}</div>
+                    <div class="value-control">
+                        <label for="value-${index}">القيمة:</label>
+                        <input type="number" id="value-${index}" class="value-input" value="${player.value}" placeholder="أدخل القيمة" onchange="updateValue(${index})" oninput="updateValue(${index})">
+                        <div class="input-error" id="error-${index}">يرجى إدخال رقم صحيح</div>
+                    </div>
+                    <div class="score-controls">
+                        <button class="subtract-btn" onclick="handleScoreUpdate(${index}, -1)">-</button>
+                        <button class="add-btn" onclick="handleScoreUpdate(${index}, 1)">+</button>
+                    </div>
+                    <div class="score-history">
+                        <h4>سجل النقاط</h4>
+                        ${player.history.length > 0 ? `
+                            <ul class="history-list">
+                                ${player.history.map(item => `
+                                    <li class="history-item ${item.type === 'add' : 'history-subtract'}">
+                                        <span>${item.type === 'add' ? '+' : '-'}${item.value}</span>
+                                        <span class="history-time">${item.time}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<div class="empty-history">لا توجد عمليات</div>'}
+                    </div>
+                `;
+                container.appendChild(playerCard);
+            });
+        }
+        
+        // Handle score update (check if value is valid before updating)
+        function handleScoreUpdate(index, operation) {
+            const value = getValue(index);
+            
+            // Don't update if value is invalid
+            if (isNaN(value) || value <= 0) {
+                return;
+            }
+            
+            updateScore(index, operation * value);
+            resetValueInput(index);
+        }
+        
+        // Update score function
+        function updateScore(index, value) {
+            players[index].score += value;
+            // Ensure score doesn't go below zero
+            if (players[index].score < 0) players[index].score = 0;
+            
+            // Add to history only if value is not zero
+            const absValue = Math.abs(value);
+            if (absValue > 0) {
+                players[index].history.unshift({
+                    type: value > 0 ? 'add' : 'subtract',
+                    value: absValue,
+                    time: formatTime()
+                });
+                
+                // Keep only last 5 history items
+                if (players[index].history.length > 5) {
+                    players[index].history = players[index].history.slice(0, 5);
+                }
+            }
+            
+            // Update display
+            document.getElementById(`score-${index}`).textContent = players[index].score;
+            
+            // Re-render to update colors and history
+            renderPlayers();
+        }
+        
+        // Add new player
+        function addPlayer() {
+            players.push({ name: `اللاعب ${players.length + 1}`, score: 0, value: "", history: [] });
+            renderPlayers();
+        }
+        
+        // Delete player
+        function deletePlayer(index) {
+            if (confirm(`هل تريد حذف ${players[index].name}؟`)) {
+                players.splice(index, 1);
+                renderPlayers();
+                document.getElementById('results').style.display = 'none';
+            }
+        }
+        
+        // Calculate results
+        function calculateResults() {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            const winnerDiv = document.getElementById('winner');
+            
+            // Sort players by score
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+            
+            // Display results
+            resultsContent.innerHTML = '';
+            sortedPlayers.forEach((player, index) => {
+                const isPlayerLoser = isLoser(player.score);
+                const playerResult = document.createElement('div');
+                playerResult.className = 'player-result';
+                playerResult.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; padding: 6px; background: ${index % 2 === 0 ? '#f9f9f9' : 'white'}; border-radius: 3px; font-size: 0.8rem;">
+                        <div>${index + 1}. ${player.name}</div>
+                        <div style="font-weight: bold; color: ${isPlayerLoser ? '#f44336' : ''}">${player.score} نقطة</div>
+                    </div>
+                `;
+                resultsContent.appendChild(playerResult);
+            });
+            
+            // Display winner (first player who is not a loser)
+            const winner = sortedPlayers.find(player => !isLoser(player.score));
+            if (winner) {
+                winnerDiv.textContent = `الفائز: ${winner.name} مع ${winner.score} نقطة!`;
+            } else {
+                winnerDiv.textContent = 'لا يوجد فائز، جميع اللاعبين خسروا!';
+            }
+            
+            // Show results
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Clear all scores
+        function clearAll() {
+            if (confirm('هل تريد مسح جميع النقاط والسجلات؟')) {
+                players.forEach(player => {
+                    player.score = 0;
+                    player.value = "";
+                    player.history = [];
+                });
+                renderPlayers();
+                document.getElementById('results').style.display = 'none';
+            }
+        }
+        
+        // Show refresh warning
+        function showRefreshWarning() {
+            const warning = document.getElementById('refreshWarning');
+            warning.style.display = 'block';
+            
+            setTimeout(() => {
+                warning.style.display = 'none';
+            }, 4000);
+        }
+        
+        // Initial render
+        renderPlayers();
+        
+        // Add beforeunload event to warn about data loss
+        window.addEventListener('beforeunload', function (e) {
+            // Check if there's any data to save
+            const hasData = players.some(player => player.score > 0 || player.history.length > 0);
+            
+            if (hasData) {
+                showRefreshWarning();
+                e.preventDefault();
+                e.returnValue = 'سيتم فقدان جميع البيانات عند تحديث الصفحة. هل تريد المتابعة؟';
+            }
+        });
+    </script>
+</body>
+</html>
